@@ -30,13 +30,15 @@ class InstrumentManager(dict):
     keeps track of listed instruments and their settings
     :param config_path: Path to configuration file
     """
-    def __init__(self, config_path=None, server=False, ns_address=None):
+    def __init__(self, config_path=None, server=False, ns_address=None, ns_port=None):
         """Initializes InstrumentManager using config_path if available"""
 
         dict.__init__(self)
         self.config_path = config_path
         self.config = None
+
         self.ns_address = ns_address
+        self.ns_port = ns_port
 
         #self.instruments={}
         if not server and Pyro4Loaded:
@@ -110,7 +112,7 @@ class InstrumentManager(dict):
         host=s.getsockname()[0]
         #host=socket.gethostbyname(socket.gethostname())
         daemon = Pyro4.Daemon(host=host)
-        ns = Pyro4.locateNS(self.ns_address)
+        ns = Pyro4.locateNS(self.ns_address, self.ns_port)
      
         for instrument in instruments:
             uri = daemon.register(instrument)
@@ -127,9 +129,9 @@ class InstrumentManager(dict):
         daemon.requestLoop()
 
     def connect_proxies(self):
-        ns = Pyro4.locateNS(self.ns_address)
+        ns = Pyro4.locateNS(self.ns_address,self.ns_port)
 
-        print("connected proxies, ns=",ns)
+        #print("connected proxies, ns=",ns)
         for name, uri in list(ns.list().items()):
             self[name] = Pyro4.Proxy(uri)
 
@@ -163,7 +165,7 @@ class InstrumentManager(dict):
     def clean_nameserver(self):
         """Checks to make sure all of the names listed
         in server are really there"""
-        ns = Pyro4.locateNS(self.ns_address)
+        ns = Pyro4.locateNS(self.ns_address, self.ns_port)
         for name, uri in list(ns.list().items()):
             try:
                 proxy=Pyro4.Proxy(uri)

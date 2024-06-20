@@ -133,10 +133,13 @@ class Experiment:
             for k, d in data.items():
                 f.add(k, np.array(d))
 
-    def load_data(self, f):
+    def load_data(self, f=None):
+        if f is None:
+            f=self.datafile()
         data={}
         for k in f.keys():
             data[k]=np.array(f[k])
         data['attrs']=f.get_dict()
+        self.data=data
         return data
 
