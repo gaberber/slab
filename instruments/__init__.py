@@ -28,11 +28,8 @@ from .NI9260 import NI9260
 try: from .qick_instrument import QickInstrument
 except: print("Could not import QickInstrument, try install qick package")
 
-<<<<<<< Updated upstream
-=======
 try: from .AD5791DAC.AD5791 import AD5791
 except: print("Could not load AD5791 dac")
->>>>>>> Stashed changes
 try: from .AD5780PARDAC.DACInterface import AD5780_serial
 except: print("Could not load AD5780 dac ")
 try: from.SignalCore import SignalCore
