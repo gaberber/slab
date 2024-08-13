@@ -30,7 +30,11 @@ class InstrumentManager(dict):
     keeps track of listed instruments and their settings
     :param config_path: Path to configuration file
     """
+<<<<<<< Updated upstream
     def __init__(self, config_path=None, server=False, ns_address=None, ns_port=None):
+=======
+    def __init__(self, config_path=None, server=False, ns_address="0.0.0.0:9090"):
+>>>>>>> Stashed changes
         """Initializes InstrumentManager using config_path if available"""
 
         dict.__init__(self)
@@ -112,7 +116,11 @@ class InstrumentManager(dict):
         host=s.getsockname()[0]
         #host=socket.gethostbyname(socket.gethostname())
         daemon = Pyro4.Daemon(host=host)
+<<<<<<< Updated upstream
         ns = Pyro4.locateNS(self.ns_address, self.ns_port)
+=======
+        ns = Pyro4.locateNS(self.ns_address)
+>>>>>>> Stashed changes
      
         for instrument in instruments:
             uri = daemon.register(instrument)

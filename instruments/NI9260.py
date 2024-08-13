@@ -157,13 +157,18 @@ class NI9260():
         also plays a role, with this too large, the buffer fills up too quickly and the output won't update either.
         """
         sampleSize = 15
-        sampleRate = 25600
-
+        sampleRate = 25600/2
+        # sampleSize = 255
+        # sampleRate = 25600/4
+        # sampleSize = 127
+        # sampleRate = 25600/4
+        # clockSource = "OnboardClock"
         if first_time:
             self.setup_channel(name=channels)
             self.set_write_regeneration_mode(True)
             self.set_sample_clock(runContinuous=True, clockSource="", sampleRate=sampleRate, sampleSize=sampleSize)
             self.set_write_relative_to('first')
+            # self.set_write_relative_to('current')
             self.set_idle_output_setting("MaintainCurrentValue")
             self.set_bypass_memory_buffer(False)
 

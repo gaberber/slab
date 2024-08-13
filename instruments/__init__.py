@@ -17,14 +17,22 @@ from .awg import *
 from .spec_analyzer.spectrum_analyzer import *
 from .ipsmagnet import *
 from .TestInstruments import EchoInstrument,RandomInstrument
-from .TDS7104 import TekTDS7104
+#from .TDS7104 import TekTDS7104
 from .RCA18 import MCRCA18
 from .multimeter import Keithley199
 from .minicircuits_rfswitch import MiniCircuitsSwitch
+from .EonHe_Manifold import EonHeManifold
+from .QDAC import QDACII
+from .NI9260 import NI9260
 
 try: from .qick_instrument import QickInstrument
 except: print("Could not import QickInstrument, try install qick package")
 
+<<<<<<< Updated upstream
+=======
+try: from .AD5791DAC.AD5791 import AD5791
+except: print("Could not load AD5791 dac")
+>>>>>>> Stashed changes
 try: from .AD5780PARDAC.DACInterface import AD5780_serial
 except: print("Could not load AD5780 dac ")
 try: from.SignalCore import SignalCore
