@@ -1,5 +1,5 @@
 try:
-    import visa
+    import pyvisa as visa
 
 except Exception as e:
     print(e)
