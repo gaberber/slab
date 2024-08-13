@@ -45,7 +45,12 @@ class Experiment:
             self.config_file = os.path.join(path, config_file)
         else:
             self.config_file = None
-        self.im = InstrumentManager()
+        
+        if not hasattr(self, 'ns_port'):
+            self.ns_port=None
+        if not hasattr(self, 'ns_address'):
+            self.ns_address=None
+        self.im = InstrumentManager(ns_address=self.ns_address, ns_port=self.ns_port)
         # if liveplot_enabled:
         #     self.plotter = LivePlotClient()
         # self.dataserver= dataserver_client()
