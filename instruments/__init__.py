@@ -7,23 +7,23 @@ from .localinstruments import LocalInstruments
 try: from .InstrumentManagerWindow import InstrumentManagerWindow
 except: print("Could not load InstrumentManagerWindow")
 
-from .spectrumanalyzer import E4440
-from .nwa import E5071
-from .PNAX import N5242A
-from .RhodeSchwarz import RhodeSchwarz
-from .rfgenerators import N5183B,E8257D,BNC845
-from .cryostat import Triton_old
-from .awg import *
-from .spec_analyzer.spectrum_analyzer import *
-from .ipsmagnet import *
-from .TestInstruments import EchoInstrument,RandomInstrument
-#from .TDS7104 import TekTDS7104
-from .RCA18 import MCRCA18
-from .multimeter import Keithley199
-from .minicircuits_rfswitch import MiniCircuitsSwitch
-from .EonHe_Manifold import EonHeManifold
-from .QDAC import QDACII
-from .NI9260 import NI9260
+# from .spectrumanalyzer import E4440
+# from .nwa import E5071
+# from .PNAX import N5242A
+# from .RhodeSchwarz import RhodeSchwarz
+# from .rfgenerators import N5183B,E8257D,BNC845
+# from .cryostat import Triton_old
+# from .awg import *
+# from .spec_analyzer.spectrum_analyzer import *
+# from .ipsmagnet import *
+# from .TestInstruments import EchoInstrument,RandomInstrument
+# #from .TDS7104 import TekTDS7104
+# from .RCA18 import MCRCA18
+# from .multimeter import Keithley199
+# from .minicircuits_rfswitch import MiniCircuitsSwitch
+# from .EonHe_Manifold import EonHeManifold
+# from .QDAC import QDACII
+# from .NI9260 import NI9260
 
 try: from .qick_instrument import QickInstrument
 except: print("Could not import QickInstrument, try install qick package")
