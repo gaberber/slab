@@ -8,6 +8,48 @@
 *.pyc
 __pycache__
 
+# virtual environments
+.env/
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# packaging
+slab.egg-info/
+*.egg-info/
+build/
+dist/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# logs and databases
+*.log
+*.sqlite3
+
+# test and coverage
+.coverage
+.tox/
+.pytest_cache/
+htmlcov/
+coverage.xml
+nosetests.xml
+test-results/
+
+# packaging
+slab.egg-info/
+*.egg-info/
+
 # julia
 Manifest.toml
 

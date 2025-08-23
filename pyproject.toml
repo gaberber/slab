@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slab"
+version = "0.1"
+description = "This package is used for Schuster Lab experiments"
+authors = [
+    { name = "David Schuster", email = "david.schuster@uchicago.edu" }
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "Pyro4",
+    "h5py",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["__pycache__", "*.pyc"]
