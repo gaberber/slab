@@ -16,7 +16,13 @@ dependencies = [
     "h5py",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["*"]
-exclude = ["__pycache__", "*.pyc"]
+# [tool.setuptools.packages.find]
+# where = ["."]
+# include = ["*"]
+# exclude = ["__pycache__", "*.pyc"]
+
+[tool.setuptools]
+packages = ["slab"]
+
+[tool.setuptools.package-dir]
+slab="."
