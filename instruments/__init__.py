@@ -29,7 +29,7 @@ except: print("Could not load InstrumentManagerWindow")
 #
 # try: from .AD5791DAC.AD5791 import AD5791
 # except: print("Could not load AD5791 dac")
-from .AD5780PARDAC.DACInterface import AD5780_serial
+# from .AD5780PARDAC.DACInterface import AD5780_serial
 # except: print("Could not load AD5780 dac ")
 # try: from.SignalCore import SignalCore
 # except: print("Could not load SignalCore")

@@ -32,7 +32,7 @@ Notice several features of this interaction.
 import numpy as np
 import h5py
 import inspect
-import Pyro4
+# import Pyro4
 import threading
 # import PyQt4.Qt as qt
 import datetime
