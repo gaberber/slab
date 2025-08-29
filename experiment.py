@@ -88,17 +88,21 @@ class Experiment:
                 json.dump(self.cfg, fid, cls=NpEncoder), 
             self.datafile().attrs['config'] = json.dumps(self.cfg, cls=NpEncoder)
 
-    def datafile(self, group=None, remote=False, data_file = None, swmr=False):
+    def datafile(self, group=None, remote=False, data_file = None, swmr=False, read_mode=False):
         """returns a SlabFile instance
            proxy functionality not implemented yet"""
         if data_file ==None:
             data_file = self.fname
-        if swmr==True:
-            f = SlabFile(data_file, 'w', libver='latest')
-        elif swmr==False:
-            f = SlabFile(data_file, 'a')
+        if read_mode:
+            f = SlabFile(data_file, 'r')
         else:
-            raise Exception('ERROR: swmr must be type boolean')
+            # NOTE: this doesn't seem to be what swmr mode means in h5py?
+            if swmr==True:
+                f = SlabFile(data_file, 'w', libver='latest')
+            elif swmr==False:
+                f = SlabFile(data_file, 'a')
+            else:
+                raise Exception('ERROR: swmr must be type boolean')
 
         if group is not None:
             f = f.require_group(group)
