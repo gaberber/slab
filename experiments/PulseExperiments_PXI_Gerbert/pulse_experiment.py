@@ -20,7 +20,8 @@ import json
 from slab.experiments.PulseExperiments_PXI_Gerbert.get_data import get_iq_data, get_singleshot_data
 from slab.experiments.PulseExperiments_PXI_Gerbert.PostExperimentAnalysis import PostExperimentAnalyzeAndSave
 import copy
-import sys
+import sys 
+from slab.instruments.function_generator import BNCAWG
 
 class Experiment:
     def __init__(self,  quantum_device_cfg=None, experiment_cfg=None, hardware_cfg=None,  sequences=None, name=None,lattice_cfg = None, pass_im=None):
@@ -32,7 +33,7 @@ class Experiment:
         if pass_im:
             im = pass_im
         else:
-            im = InstrumentManager()
+            im = InstrumentManager(ns_address='10.108.30.56')
 
         self.setups = ["A", "B"]
         self.on_qbs = self.expt_params["on_qbs"]
@@ -48,7 +49,6 @@ class Experiment:
         time.sleep(1)
 
         self.pxi =  ks_pxi.KeysightSingleQubit(self.experiment_cfg, self.hardware_cfg,self.quantum_device_cfg, self.lattice_cfg, sequences, name)
-
         try:
             self.drive_los = copy.deepcopy(self.hardware_cfg['drive_los'])
             for key in self.hardware_cfg['drive_los']:
@@ -72,17 +72,18 @@ class Experiment:
             for key in self.hardware_cfg['readout_attens']:
                 self.readout_attens[key] = im[self.hardware_cfg['readout_attens'][key]]
 
-        except: print ("No digital attenuator specified in hardware config / failure to connect with im()")
+        except: print ("No readout digital attenuator specified in hardware config / failure to connect with im()")
 
         try:
             self.drive_attens = copy.deepcopy(self.hardware_cfg['drive_attens'])
             for key in self.hardware_cfg['drive_attens']:
                 self.drive_attens[key] = im[self.hardware_cfg['drive_attens'][key]]
-        except:print("No digital attenuator specified in hardware config / failure to connect with im()")
+        except:print("No drive digital attenuator specified in hardware config / failure to connect with im()")
 
         try: self.trig = im['BNCfungen']
-        except: print ("No trigger function generator specied in hardware cfg / failure to connect with im()")
-
+        except: 
+            print ("No trigger function generator specied in hardware cfg / failure to connect with im()")
+            self.trig = BNCAWG(name = 'BNCfungen', address = '10.108.30.43')
         self.data = None
 
 
@@ -115,6 +116,7 @@ class Experiment:
         try:
 
             for setup in self.setups:
+
                 d = self.drive_los[setup]
                 qbs_w_setup = [qb for qb in self.on_qbs if self.lattice_cfg["qubit"]["setup"][qb]== setup]
                 powers = [self.lattice_cfg["powers"][setup]["drive_lo_powers"][qb] for qb in qbs_w_setup]
@@ -185,18 +187,18 @@ class Experiment:
             raise
 
     def initiate_stab_LOs(self):
-        # try:
-        for ii, d in enumerate(self.stab_los):
-            stab_freq = self.lattice_cfg['stabilizer_info']['freq']*1e9
-            d.set_output(True)
-            d.set_frequency(stab_freq)
-            d.set_power(self.lattice_cfg['stabilizer_info']["stab_lo_power"])
-            # d.set_mod(state=True)
-            d.set_ext_pulse(mod=True)
+        try:
+            for ii, d in enumerate(self.stab_los):
+                stab_freq = self.lattice_cfg['stabilizer_info']['freq']*1e9
+                d.set_output(True)
+                d.set_frequency(stab_freq)
+                d.set_power(self.lattice_cfg['stabilizer_info']["stab_lo_power"])
+                # d.set_mod(state=True)
+                d.set_ext_pulse(mod=True)
 
-        # except:
-        #     print("Error in readout STABILIZER LO configuration")
-        #     raise
+        except:
+            print("Error in readout STABILIZER LO configuration")
+            raise
 
     # def initiate_readout_yigs(self):
     #     try:
@@ -426,21 +428,153 @@ class Experiment:
         self.expt_cfg = self.experiment_cfg[name]
         self.generate_datafile(path,name,seq_data_file=seq_data_file)
         self.set_trigger()
-        self.trig.set_output(state=False) # hold on triggering anythingg
+        self.trig.set_output(state=False) # hold on triggering anything
         self.initiate_drive_LOs()
         self.initiate_readout_LOs()
         # self.initiate_readout_yigs()
-        self.initiate_stab_LOs()
+        #self.initiate_stab_LOs()
         self.initiate_readout_attenuators()
         self.initiate_drive_attenuators()
         self.initiate_pxi(name, sequences)
 
+
+        
+        SETUP = 'B'
+
+        # # hardware constants
+        PRODUCT = ""
+        CHASSIS = 1
+        MARKER_SLOT = 4
+        MARKER_CHANNEL = 2 if SETUP=='A' else 4
+        MARKER_AMPLITUDE = 1
+        TRIG_SLOT = 9
+        TRIG_CHANNEL = 4
+        TRIG_AMPLITUDE = 1
+
+        DIG_SLOT = 10
+        if SETUP == 'A':
+            ICHANNEL = 1
+            QCHANNEL = 2
+        elif SETUP == 'B':
+            ICHANNEL = 3
+            QCHANNEL = 4
+        points_per_cycle = 10
+        cycles = 1
+        trigger_delay = 0
+        freqs = np.linspace(6.954, 6.96, 11)
+            
+        # self.DIG_module.DAQconfig(QCHANNEL, points_per_cycle, cycles, trigger_delay, 
+        #                     SD1.SD_TriggerModes.EXTTRIG_CYCLE)
+        # self.DIG_module.DAQconfig(ICHANNEL, points_per_cycle, cycles, trigger_delay, 
+        #                 SD1.SD_TriggerModes.EXTTRIG_CYCLE)
+        # self.DIG_module.triggerIOconfig(SD1.SD_TriggerDirections.AOU_TRG_IN)
+        # self.DIG_module.DAQtriggerExternalConfig(ICHANNEL, 
+        #                                     SD1.SD_TriggerExternalSources.TRIGGER_EXTERN, 
+        #                                     SD1.SD_TriggerBehaviors.TRIGGER_RISE)
+        # self.DIG_module.DAQtriggerExternalConfig(QCHANNEL, 
+        #                                     SD1.SD_TriggerExternalSources.TRIGGER_EXTERN, 
+        #                                     SD1.SD_TriggerBehaviors.TRIGGER_RISE)
+    
+            
+        # resI = []
+        # resQ = []
+        # for freq in tqdm(freqs):
+        #     red.set_frequency(freq*1e9)
+        #     if RUN_DIGITIZER:
+        #         dig_module.DAQstart(ICHANNEL)
+        #         dig_module.DAQstart(QCHANNEL)
+                
+        #         time.sleep(0.01)
+                
+        #         dataI = dig_module.DAQread(ICHANNEL, POINTS_PER_CYCLE * CYCLES, TIMEOUT)
+        #         dataQ = dig_module.DAQread(QCHANNEL, POINTS_PER_CYCLE * CYCLES, TIMEOUT)
+                
+        #         resI.append(np.mean(dataI[9000:]))
+        #         resQ.append(np.mean(dataQ[9000:]))
+                
+        #     time.sleep(0.1)
+
+        # self.pxi.DIG_module.stopAll()
+        # self.pxi.DIG_module.DAQconfig(QCHANNEL, points_per_cycle, cycles, trigger_delay, SD1.SD_TriggerModes.EXTTRIG_CYCLE)
+        # self.pxi.DIG_module.DAQconfig(ICHANNEL, points_per_cycle, cycles, trigger_delay, SD1.SD_TriggerModes.EXTTRIG_CYCLE)
+        # self.pxi.DIG_module.triggerIOconfig(SD1.SD_TriggerDirections.AOU_TRG_IN)
+        # self.pxi.DIG_module.DAQtriggerExternalConfig(ICHANNEL, SD1.SD_TriggerExternalSources.TRIGGER_EXTERN, SD1.SD_TriggerBehaviors.TRIGGER_RISE)
+        # self.pxi.DIG_module.DAQtriggerExternalConfig(QCHANNEL, SD1.SD_TriggerExternalSources.TRIGGER_EXTERN, SD1.SD_TriggerBehaviors.TRIGGER_RISE)
+        
+        # self.pxi.DIG_module.DAQbufferPoolConfig(ICHANNEL,
+        #                     4000, 1000000)
+        # self.pxi.DIG_module.DAQbufferPoolConfig(QCHANNEL,
+        #                     4000, 1000000)
+        
+        # self.pxi.DIG_module.DAQstart(ICHANNEL)
+        # self.pxi.DIG_module.DAQstart(QCHANNEL)
         time.sleep(0.2)
         self.pxi.run()
         time.sleep(0.2)
+    
 
         self.trig.set_output(state=True) # begin triggering experiment
+        
+        input("press any key to continue")
+        
+        # time.sleep(0.2)
+        # self.pxi.run()
+        # time.sleep(0.2)
+    
 
+        # self.trig.set_output(state=True) # begin triggering experiment
+        self.pxi.DIG_module.close()
+        # self.pxi.DIG_ch_1.clear()
+        dig_module = SD1.SD_AIN()
+        dig_module_ID = dig_module.openWithSlot(PRODUCT, CHASSIS, DIG_SLOT)
+
+        if dig_module_ID < 0:
+            print("Module open error:", dig_module_ID)
+        else:
+            print("Module opened:", dig_module_ID)
+            print("Module name:", dig_module.getProductName())
+            print("slot:", dig_module.getSlot())
+            print("Chassis:", dig_module.getChassis())
+            print()
+            
+        dig_module.DAQconfig(QCHANNEL, points_per_cycle, cycles, trigger_delay, 
+                            SD1.SD_TriggerModes.EXTTRIG_CYCLE)
+        dig_module.DAQconfig(ICHANNEL, points_per_cycle, cycles, trigger_delay, 
+                        SD1.SD_TriggerModes.EXTTRIG_CYCLE)
+        dig_module.triggerIOconfig(SD1.SD_TriggerDirections.AOU_TRG_IN)
+        dig_module.DAQtriggerExternalConfig(ICHANNEL, 
+                                            SD1.SD_TriggerExternalSources.TRIGGER_EXTERN, 
+                                            SD1.SD_TriggerBehaviors.TRIGGER_RISE)
+        dig_module.DAQtriggerExternalConfig(QCHANNEL, 
+                                            SD1.SD_TriggerExternalSources.TRIGGER_EXTERN, 
+                                            SD1.SD_TriggerBehaviors.TRIGGER_RISE)
+        dig_module.DAQstart(ICHANNEL)
+        dig_module.DAQstart(QCHANNEL)
+        
+        time.sleep(0.01)
+
+        resI = []
+        resQ = []
+        
+        TIMEOUT = 100 #ms
+        POINTS_PER_CYCLE = 100000
+        CYCLES = 1
+        
+        dataI = dig_module.DAQread(ICHANNEL, POINTS_PER_CYCLE * CYCLES, TIMEOUT)
+        dataQ = dig_module.DAQread(QCHANNEL, POINTS_PER_CYCLE * CYCLES, TIMEOUT)
+        
+        resI.append(np.mean(dataI[9000:]))
+        resQ.append(np.mean(dataQ[9000:]))
+            
+        time.sleep(0.1)
+        
+        dig_module.DAQstop(ICHANNEL)
+        dig_module.DAQstop(QCHANNEL)
+        dig_module.close()
+        print()
+        print("AOU closed")
+
+        
         #TODO: not yet updated check_sync
         if check_sync:
             self.data = self.get_traj_data_pxi_no_window(self.expt_cfg, seq_data_file=seq_data_file)
@@ -455,9 +589,9 @@ class Experiment:
                 self.data = self.get_avg_data_threshold_pxi(self.expt_cfg, name, seq_data_file=seq_data_file)
             else:
                 self.data = self.get_avg_data_pxi(self.expt_cfg, name, seq_data_file=seq_data_file)
-        #
+
         self.pxi_stop()
-        return self.data
+        return self.data, resI, resQ
 
     def run_experiment_pxi_resspec(self, sequences, path, name, seq_data_file=None, update_awg=False, expt_num=0,
                                    check_sync=False, save_errs=False, pi=False, ff=False, two_setups=False):

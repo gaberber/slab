@@ -21,6 +21,7 @@ from .TDS7104 import TekTDS7104
 from .RCA18 import MCRCA18
 from .multimeter import Keithley199
 from .minicircuits_rfswitch import MiniCircuitsSwitch
+from .RhodeSchwarz import ZVB8
 
 try: from .qick_instrument import QickInstrument
 except: print("Could not import QickInstrument, try install qick package")

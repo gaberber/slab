@@ -4,7 +4,7 @@
 #define HANDLER_ENTRY(NAME, np) { #NAME, handle_ ## NAME, np}
 
 int handle_INIT(int argc, String argv[]);
-int handle_REINIT(int argc, String argv[]);
+//int handle_REINIT(int argc, String argv[]);
 int handle_SET(int argc, String argv[]);
 int handle_READ(int argc, String argv[]);
 int handle_RAMP(int argc, String argv[]);
@@ -24,7 +24,7 @@ typedef struct handler_entry
 
 handler_entry handlers[] = {
                                 HANDLER_ENTRY(INIT, 0), 
-                                HANDLER_ENTRY(REINIT,0),
+                                //HANDLER_ENTRY(REINIT,0),
                                 HANDLER_ENTRY(SET, 2), 
                                 HANDLER_ENTRY(READ, 1), 
                                 HANDLER_ENTRY(RAMP, 4), 
@@ -60,6 +60,7 @@ void setup() {
   //pinMode(6, OUTPUT);
   Serial.begin(9600);
   Serial.println("Setting up server");
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -70,6 +71,7 @@ void loop() {
       Serial.println(cmd_str);
       process_command(cmd_str);
       cmd_str = "";
+
     }
   }
 }
@@ -141,9 +143,25 @@ int handle_SET(int argc, String argv[])
   Serial.println("SET");
   int dac_num = argv[1].toInt();
   long dac_val = argv[2].toInt();
+
+//  for (i = 1:dac_num+1){
+//    digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+//    delay(500);                      // wait for a second
+//    digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+//    delay(500);  
+//  }
+//  delay(2000)
+//  indNum = ceil(dac_val/60000);
+//  for (j = 1:indNum){
+//    digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+//    delay(500);                      // wait for a second
+//    digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+//    delay(500); 
+//  }
   long rc = dacs[dac_num - 1].set_value(dac_val);
   //Serial.println(BITCODE_TO_DAC(rc));
   Serial.println("SET COMPLETE");
+
   return 0;
 }
 
@@ -164,9 +182,10 @@ int handle_RAMP(int argc, String argv[])
   long dac_val = argv[2].toInt();
   long step_size = argv[3].toInt();
   int step_time = argv[4].toInt();
+  
   dacs[dac_num - 1].ramp(dac_val, step_size, step_time);
   Serial.println("DAC RAMP DONE");
-  return 0;
+   return 0;
 }
 
 int handle_PARALLELRAMP(int argc,String argv[])

@@ -135,7 +135,7 @@ class ZVB8(SocketInstrument):
 		    -setting up an cavity port (fixed frequency/power), CAVport
 		    -setting up a probe port (swept freq), RFport
 		    -configuring the measurement port (Mport) to measure
-		        S(Mport-CAVport) as function of RFfreq
+		        S(Mport-CAVport) as function of RFfreq 
 		Currently just plots data on VNA
 		'''
 		channel      = settings['channel']

@@ -29,7 +29,8 @@ class KeysightSingleQubit:
     Module (slot) 5 is an AWG, used for fast flux pulses
     Module 6 is an AWG, used for fast flux pulses
     Module 7 is an AWG. channel 1 goes to the I input to the mixer, channel 2 goes to the Q input
-    Module 4 is used as a marker for the LO (ie send signal to switch).
+    Module 4 is used as markers for the LO (ie send signal to switch).
+        ch1-4: qubit drive A, readout A, qubit B, readout B
     Module 9 is for I, Q, and marker for stabilizer
         ch4 of this trig for the digitizer.
 
@@ -50,7 +51,8 @@ class KeysightSingleQubit:
                                        7: key.ModuleType.OUTPUT,
                                        8: key.ModuleType.OUTPUT,
                                        9: key.ModuleType.OUTPUT,
-                                       10: key.ModuleType.INPUT})
+                                       10: key.ModuleType.INPUT
+                                       })
 
         self.hardware_cfg = hardware_cfg
         self.lattice_cfg = lattice_cfg
@@ -254,14 +256,40 @@ class KeysightSingleQubit:
 
         print ("Configuring digitizer. ADC range set to",self.adc_range, "Vpp")
         self.DIG_module.triggerIOconfig(SD1.SD_TriggerDirections.AOU_TRG_IN)
-        self.DIG_ch_1.configure(full_scale=self.adc_range, delay=DIG_ch_delays[0], points_per_cycle=self.DIG_sampl_record,cycles=num_expt * num_avg, buffer_time_out=100000, trigger_mode=SD1.SD_TriggerModes.EXTTRIG, use_buffering=True, cycles_per_return=num_expt)
-        self.DIG_ch_2.configure(full_scale = self.adc_range,delay=DIG_ch_delays[1], points_per_cycle=self.DIG_sampl_record, buffer_time_out=100000, cycles=num_expt * num_avg, trigger_mode=SD1.SD_TriggerModes.EXTTRIG, use_buffering=True, cycles_per_return=num_expt)
-        self.DIG_ch_3.configure(full_scale=self.adc_range, delay=DIG_ch_delays[2], points_per_cycle=self.DIG_sampl_record,cycles=num_expt * num_avg, buffer_time_out=100000, trigger_mode=SD1.SD_TriggerModes.EXTTRIG,use_buffering=True, cycles_per_return=num_expt)
-        self.DIG_ch_4.configure(full_scale=self.adc_range, delay=DIG_ch_delays[3], points_per_cycle=self.DIG_sampl_record,
-                                cycles=num_expt * num_avg, buffer_time_out=100000,
-                                trigger_mode=SD1.SD_TriggerModes.EXTTRIG, use_buffering=True,
+    
+        self.DIG_ch_1.configure(full_scale=self.adc_range, 
+                                delay=DIG_ch_delays[0], 
+                                points_per_cycle=self.DIG_sampl_record,
+                                cycles=num_expt * num_avg, 
+                                buffer_time_out=100000, 
+                                trigger_mode=SD1.SD_TriggerModes.EXTTRIG, 
+                                use_buffering=True, 
                                 cycles_per_return=num_expt)
-
+        self.DIG_ch_2.configure(full_scale = self.adc_range,
+                                delay=DIG_ch_delays[1],
+                                points_per_cycle=self.DIG_sampl_record, 
+                                buffer_time_out=100000, 
+                                cycles=num_expt * num_avg, 
+                                trigger_mode=SD1.SD_TriggerModes.EXTTRIG, 
+                                use_buffering=True, 
+                                cycles_per_return=num_expt)
+        self.DIG_ch_3.configure(full_scale=self.adc_range, 
+                                delay=DIG_ch_delays[2], 
+                                points_per_cycle=self.DIG_sampl_record,
+                                cycles=num_expt * num_avg, 
+                                buffer_time_out=100000, 
+                                trigger_mode=SD1.SD_TriggerModes.EXTTRIG,
+                                use_buffering=True, 
+                                cycles_per_return=num_expt)
+        self.DIG_ch_4.configure(full_scale=self.adc_range, 
+                                delay=DIG_ch_delays[3], 
+                                points_per_cycle=self.DIG_sampl_record,
+                                cycles=num_expt * num_avg, 
+                                buffer_time_out=100000,
+                                trigger_mode=SD1.SD_TriggerModes.EXTTRIG,
+                                use_buffering=True,
+                                cycles_per_return=num_expt)
+        
     def configureDigChannels(self, hardware_cfg, experiment_cfg, quantum_device_cfg, lattice_cfg, name):
         '''Configures the DIG channels that are used in the experiment. This section may be modified as needed
         for other experiments. See documentation in KeysightLib for the configure() methods on KeysightChannelIn and
@@ -519,7 +547,7 @@ class KeysightSingleQubit:
             # Queue marker waveforms to marker card channels
             PXIwave_qubitA_marker.queue(self.m_ch_1, trigger_mode=SD1.SD_TriggerModes.EXTTRIG, delay=self.hardware_delays['qubitA_marker'], cycles=1, prescaler=0)
             PXIwave_readoutA.queue(self.m_ch_2, trigger_mode=SD1.SD_TriggerModes.EXTTRIG,
-                                        delay=self.hardware_delays['qubitA_marker'], cycles=1, prescaler=0)
+                                        delay=self.hardware_delays['readoutA'], cycles=1, prescaler=0)
             #PXIwave_readoutA.queue(self.m_ch_2, trigger_mode=SD1.SD_TriggerModes.EXTTRIG, delay=self.hardware_delays['readoutA'], cycles=1, prescaler=0)
             # Send marker waveforms to Marker card
             PXIwave_qubitB_marker.loadToModule(m_module)
@@ -562,32 +590,32 @@ class KeysightSingleQubit:
 
     def run(self):
         print("Experiment starting. Expected time = ", self.totaltime, "mins")
-        try:
+        # try:
             # Start all the channels on the AWG and digitizer modules.
-            print ("Number of experiments = ",self.num_expt)
+        print ("Number of experiments = ",self.num_expt)
 
-            self.DIG_ch_1.clear()
-            self.DIG_ch_1.start()
-            self.DIG_ch_2.clear()
-            self.DIG_ch_2.start()
-            self.DIG_ch_3.clear()
-            self.DIG_ch_3.start()
-            self.DIG_ch_4.clear()
-            self.DIG_ch_4.start()
+        self.DIG_ch_1.clear()
+        self.DIG_ch_1.start()
+        self.DIG_ch_2.clear()
+        self.DIG_ch_2.start()
+        self.DIG_ch_3.clear()
+        self.DIG_ch_3.start()
+        self.DIG_ch_4.clear()
+        self.DIG_ch_4.start()
 
-            self.AWG_module.startAll()
-            self.ff1_module.startAll()
-            self.stab_module.startAll()
-            self.m_module.startAll()
-            self.ff2_module.startAll()
+        self.AWG_module.startAll()
+        self.ff1_module.startAll()
+        self.stab_module.startAll()
+        self.m_module.startAll()
+        self.ff2_module.startAll()
 
 
-        except BaseException as e:  # Quickly kill everything and risk data loss, mainly in case of keyboard interrupt
-            pass
-            print(e)
+        # except BaseException as e:  # Quickly kill everything and risk data loss, mainly in case of keyboard interrupt
+        #     pass
+        #     print(e)
 
-        finally:  # Clean up threads to prevent zombies. If this fails, you have to restart program.
-            pass
+        # finally:  # Clean up threads to prevent zombies. If this fails, you have to restart program.
+        #     pass
 
     def traj_data_one(self):
         """
@@ -822,6 +850,8 @@ class KeysightSingleQubit:
                 qbA_Q += np.mean((np.reshape(self.DIG_ch_2.readDataQuiet(), self.data_2.shape).T[
                       int(self.readoutA_window[0]):int(self.readoutA_window[1])]*self.readoutA_weight).T, 1)
             if "B" in self.rd_setups:
+                print("here!!")
+                print(self.DIG_ch_3.readDataQuiet())
                 qbB_I += np.mean((np.reshape(self.DIG_ch_3.readDataQuiet(), self.data_3.shape).T[int(
                     self.readoutB_window[0]):int(self.readoutB_window[1])] * self.readoutB_weight).T, 1)
                 qbB_Q += np.mean((np.reshape(self.DIG_ch_4.readDataQuiet(), self.data_4.shape).T[int(

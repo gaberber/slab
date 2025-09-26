@@ -63,7 +63,13 @@ class Instrument(object):
             return s + term_char
 
     def query(self, cmd, timeout=None):
+        # print(cmd)
+        # print(type(cmd))
+        # print(self.query_sleep)
+        self.query_sleep = 1
+        # starttime = time.time()
         self.write(cmd)
+        # print((time.time()-starttime)*1e6)
         time.sleep(self.query_sleep)
         return self.read(timeout)
 
@@ -250,6 +256,8 @@ class SerialInstrument(Instrument):
         self.ser.setTimeout(self.timeout)
 
     def write(self, s):
+        # print(self.encode_s(s))
+        # print(type(self.encode_s(s)))
         if self.enabled: self.ser.write(self.encode_s(s))
 
     def read(self, timeout=None):

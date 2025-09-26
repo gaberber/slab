@@ -28,20 +28,25 @@ def json_log(filename, V_vec):
         json.dump(data, f, indent=4)
 
 class AD5780_serial():
-    def __init__(self):
-        ard = serial.Serial('COM3', 9600, timeout=1000)
+    def __init__(self, **kwargs):
+        ard = serial.Serial('COM9', 9600, timeout=1000)
         self.ard = ard
+        self.name = kwargs['name'] if 'name' in kwargs else 'dac'
+
 
     #Sets the voltage of dac dacnum to voltage voltage
     def set(self,dacnum, voltage):
         binvolt = numtobin(voltage)#Convert from voltage -10 to 10 to 2^18 bit num
         combinedstring = 'SET' + ' ' + str(dacnum) + ' ' + str(binvolt) + ' \r\n'
-        # print('Combined String: ' + str(combinedstring))
+
+        print('Combined String: ' + str(combinedstring))
         self.ard.write(combinedstring.encode())
+
 
     #Initializes all of the dacs
     def init(self):
         self.ard.write(b'INIT \r\n')
+        # return "test"
         # combinedstring = 'INIT \r\n'
         # print('Combined String: ' + combinedstring)
         # self.ard.write(combinedstring.encode())
@@ -88,8 +93,8 @@ class AD5780_serial():
         bvoltagearray = [0,0,0,0,0,0,0,0]
         for i in range(8):
             bvoltagearray[i] = numtobin(voltagearray[i])
-        combinedstring = 'PARALLELRAMP' + ' ' + str(bvoltagearray[0]) + ' ' + str(bvoltagearray[1]) + ' ' + str(bvoltagearray[2]) + ' ' + str(bvoltagearray[3]) + ' ' + str(bvoltagearray[4]) + ' ' + str(bvoltagearray[5]) + ' ' + str(bvoltagearray[6]) + ' ' + str(bvoltagearray[7]) +  ' ' + str(stepsize) + ' ' + str(
-            steptime) + ' \r\n'
+        combinedstring = 'PARALLELRAMP' + ' ' + str(bvoltagearray[0]) + ' ' + str(bvoltagearray[1]) + ' ' + str(bvoltagearray[2]) + ' ' + str(bvoltagearray[3]) + ' ' + str(bvoltagearray[4]) + ' ' + str(bvoltagearray[5]) + ' ' + str(bvoltagearray[6]) + ' ' + str(bvoltagearray[7]) +  ' ' + str(stepsize) + ' ' + str(steptime) + ' \r\n'
+
         self.ard.write(combinedstring.encode())
         time.sleep(0.05)
         self.ard.readline()

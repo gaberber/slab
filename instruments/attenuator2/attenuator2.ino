@@ -50,8 +50,8 @@ void setup() {
   while (Serial.available() >0) {
   }
   
-  Serial.print ('Digital Attenuator ');
-  Serial.println (unit_address,DEC);
+  Serial.print("Digital Attenuator");
+  Serial.println(unit_address,DEC);
   //establishContact();  // send a byte to establish contact until receiver responds 
 }
 

@@ -1071,6 +1071,12 @@ class KeysightChannelIn(KeysightChannel):
             if err4 < 0:
                 raise KeysightError("Error configuring buffer pool", err4)
         self._points_per_return = points_per_cycle * cycles_per_return
+        
+        print("here")
+        err5 = self._module.DAQtriggerExternalConfig(self._channel_number, 
+                                    SD1.SD_TriggerExternalSources.TRIGGER_EXTERN, 
+                                    SD1.SD_TriggerBehaviors.TRIGGER_RISE)
+        print(err5)
 
     def readData(self, data_points, timeout = KeysightConstants.INFINITY):
         '''Reads arbitrary length of data from the digitizer. Useful for
@@ -1085,7 +1091,19 @@ class KeysightChannelIn(KeysightChannel):
             raise KeysightError("Error acquiring data", data)
         return data
 
-    def readDataQuiet(self, timeout = 10000):
+    def readDataQuiet(self, timeout = 6000):
+        # '''Alternative to readData() (above) that gets the expected number of data points
+        # and does not throw errors. The advantage is that it almost always works,
+        # and you don't have to worry about it raising exceptions in separate
+        # threads. The disadvantage is you don't have exception handling.'''
+        # print(f"ho ho gon flush ch{self._channel_number}")
+        # print(self._module.DAQflush(self._channel_number))
+        # print(f'yo reading {self._points_per_return} pts')
+        # import time
+        # t0=time.time()
+        # res = self._module.DAQread(self._channel_number, self._points_per_return, timeout)
+        # print(f'got result {res} after time {time.time()-t0}')
+        # return res
         '''Alternative to readData() (above) that gets the expected number of data points
         and does not throw errors. The advantage is that it almost always works,
         and you don't have to worry about it raising exceptions in separate

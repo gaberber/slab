@@ -30,22 +30,23 @@ class InstrumentManager(dict):
     keeps track of listed instruments and their settings
     :param config_path: Path to configuration file
     """
-    def __init__(self, config_path=None, server=False, ns_address=None):
+    def __init__(self, config_path=None, server=False, ns_address=None, ns_port=9090):
         """Initializes InstrumentManager using config_path if available"""
 
         dict.__init__(self)
         self.config_path = config_path
         self.config = None
         self.ns_address = ns_address
+        self.ns_port = ns_port
 
         #self.instruments={}
         if not server and Pyro4Loaded:
-                try:
-                    #self.clean_nameserver()
-                    self.connect_proxies()
-                except Exception as e:
-                    print("Warning: Could not connect proxies!")
-                    print(e)
+            # try:
+            # self.clean_nameserver()
+            self.connect_proxies()
+            # except Exception as e:
+            #     print("Warning: Could not connect proxies!")
+            #     print(e)
         if config_path is not None:
             instruments=self.load_config_file(config_path)
         else:
@@ -87,6 +88,7 @@ class InstrumentManager(dict):
         #print config_string
         name, in_class, addr = self.parse_config_string(config_string);
         fn = getattr(slab.instruments, in_class)
+        print(name, in_class, addr)
         return fn(name=name, address=addr)
 
     def __getattr__(self, item):
@@ -126,12 +128,95 @@ class InstrumentManager(dict):
             print("Registered: %s\t%s" % (instrument.name, uri))
         daemon.requestLoop()
 
+    # def serve_instruments(self, instruments=None):
+    #     """inst_dict is in form {name:instrument_instance}"""
+    #     Pyro4.config.SERVERTYPE = "multiplex"
+
+    #     try:
+    #         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #         s.connect(("8.8.8.8", 80))
+    #         host = s.getsockname()[0]
+    #     except Exception as e:
+    #         print(f"Failed to get host IP address: {e}")
+    #         return
+
+    #     try:
+    #         daemon = Pyro4.Daemon(host=host)
+    #     except Exception as e:
+    #         print(f"Failed to create Pyro4 Daemon: {e}")
+    #         return
+
+    #     try:
+    #         ns = Pyro4.locateNS(self.ns_address)
+    #     except Exception as e:
+    #         print(f"Failed to locate Pyro4 nameserver: {e}")
+    #         return
+
+    #     for instrument in instruments:
+    #         try:
+    #             uri = daemon.register(instrument)
+    #             ns.register(instrument.name, uri)
+    #             print(f"Registered: {instrument.name}\t{uri}")
+
+    #             if hasattr(instrument, "autoproxy"):
+    #                 for obj in instrument.autoproxy:
+    #                     try:
+    #                         daemon.register(obj)
+    #                     except Exception as e:
+    #                         print(f"Failed to register autoproxy object: {e}")
+
+    #         except Exception as e:
+    #             print(f"Failed to register instrument {instrument.name}: {e}")
+
+    #     # Optional: Print all entries in the nameserver after registration
+    #     try:
+    #         entries = ns.list()
+    #         print("Entries in nameserver after registration:")
+    #         for name, uri in entries.items():
+    #             print(f"{name}: {uri}")
+    #     except Exception as e:
+    #         print(f"Failed to list entries in nameserver: {e}")
+
+    #     try:
+    #         daemon.requestLoop()
+    #     except Exception as e:
+    #         print(f"Failed to enter daemon request loop: {e}")
+
+
     def connect_proxies(self):
-        ns = Pyro4.locateNS(self.ns_address)
+        ns = Pyro4.locateNS(self.ns_address, self.ns_port)
 
         print("connected proxies, ns=",ns)
         for name, uri in list(ns.list().items()):
+            # print("name:", name)
+            # print("uri", uri)
             self[name] = Pyro4.Proxy(uri)
+            # print(f"Attempting to connect to {name} with URI: {uri}")
+            # self[name] = Pyro4.Proxy(uri)
+            # print(f"Connected: {name} => {self[name]}")
+            
+    # def connect_proxies(self):
+    #     try:
+    #         ns = Pyro4.locateNS(self.ns_address)
+    #         print("Connected proxies, ns=", ns)
+    #     except Exception as e:
+    #         print(f"Failed to locate nameserver: {e}")
+    #         return
+
+    #     try:
+    #         # List all entries in the nameserver and print their names
+    #         entries = ns.list()
+    #         print("Entries in nameserver:")
+    #         for name, uri in entries.items():
+    #             print(f"Name: {name}, URI: {uri}")
+    #             try:
+    #                 self[name] = Pyro4.Proxy(uri)
+    #                 self[name]._pyroBind()  # Force connection to check validity
+    #                 print(f"Connected: {name} => {self[name]}")
+    #             except Exception as e:
+    #                 print(f"Failed to connect to {name} with URI: {uri}: {e}")
+    #     except Exception as e:
+    #         print(f"Failed to list entries in nameserver: {e}")
 
     def get_settings(self):
         """Get settings from all instruments"""

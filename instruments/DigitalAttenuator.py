@@ -14,10 +14,11 @@ class DigitalAttenuator(SerialInstrument):
     """
 
     
-    def __init__(self, name="", address='COM6', enabled=True, timeout=0):
+    def __init__(self, name="", address='COM11', enabled=True, timeout=0):
         """Note when initialized the attenuator board will reset to -31.5dB"""
         SerialInstrument.__init__(self, name=name, address=address, enabled=enabled, timeout=timeout, query_sleep=0.1)
         self.term_char = '\n'
+        self.get_id() # Code breaks if this line is gone??
     
     
     def get_id(self):
@@ -32,7 +33,8 @@ class DigitalAttenuator(SerialInstrument):
         """Sets the attenuation from -31.5 to 0dB
            can be set in 0.5 dB increments, if not multiple of 0.5 it rounds up
            ignores the sign of the attenuation"""
-        val = floor(abs(atten) / 0.5)
+        val = 63-floor(abs(atten) / 0.5) # conversion between arduino index and actual attenuation
+        # val = floor(atten)
         self.write('S%d' % val)
     
     
@@ -40,6 +42,6 @@ class DigitalAttenuator(SerialInstrument):
         """Returns current attenuation setting of the digital attenuator in dB"""
         self.ser.flushInput()
         val = float(self.query('G'))
-        return val
-        #return -val * 0.5
+        # return val
+        return (-val -63) * 0.5
     

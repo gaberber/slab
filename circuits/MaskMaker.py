@@ -206,13 +206,16 @@ class WaferMask(sdxf.Drawing):
             if self.current_point >= self.chip_points.__len__():
                 raise MaskError("MaskError: Cannot add %d copies of chip '%s' Only %d slots on mask and %d remaining." % (
                     copies, chip.name, self.chip_points.__len__(), slots_remaining))
-            p = self.chip_points[self.current_point]
+            p = self.chip_points[self.current_point] + (-1300,0)
+
+
             self.current_point += 1
             self.append(sdxf.Insert(chip.name, point=p))
             if chip.two_layer:
                 self.append(sdxf.Insert(chip.name + 'gap', point=p, layer='gap'))
                 self.append(sdxf.Insert(chip.name + 'pin', point=p, layer='pin'))
             if label:
+                # pShift = (p[0]-1300, p[1]+250)
                 chip.label_chip(self, maskid=self.name, chipid=chip.name + ' ' + str(100 + ii + 1)[-2:],
                                 author=chip.author, offset=p)
             self.num_chips += 1
@@ -292,7 +295,7 @@ class Chip(sdxf.Block):
     """
 
     def __init__(self, name, author='', size=(7000., 1900.), mask_id_loc=(0, 1800), chip_id_loc=(0, 0),
-                 author_loc=(6900, 100), textsize=(160, 160), two_layer=False, layer=None, solid=False, do_save=True, **kwargs):
+                 author_loc=(6900, 250), textsize=(160, 160), two_layer=False, layer=None, solid=False, do_save=True, **kwargs):
         """size is a tuple size=(xsize,ysize)"""
         name = name.upper()
         self.two_layer = two_layer
@@ -340,7 +343,7 @@ class Chip(sdxf.Block):
         else:
             layer = '0'
         AlphaNumText(drawing, maskid, self.textsize, translate_pt(self.mask_id_loc, offset), layer=layer)
-        AlphaNumText(drawing, chipid, self.textsize, translate_pt(self.chip_id_loc, offset), layer=layer)
+        AlphaNumText(drawing, chipid +"S2", self.textsize, translate_pt(self.chip_id_loc, offset), layer=layer)
         AlphaNumText(drawing, author, self.textsize,
                      translate_pt(self.author_loc, offset=(-self.textsize[0] * len(author), 0)), layer=layer)
 
@@ -967,7 +970,7 @@ class Bridge_with_SiOx(Structure):
 
     """
 
-    def __init__(self, structure, bridge_width, bridge_length, pad_width, pad_height,
+    def __init__(self, structure, bridge_width, bridge_length,  pad_height, pad_width=13,
                  extra_siox_on_side=2, space_between_siox=2):
         '''
         pad_width is pad distance that is perpendicular to the bridging direction
@@ -989,7 +992,7 @@ class Bridge_with_SiOx(Structure):
         pts = [(2000, 1000), (2000, 2000), (3000, 2000), (3000, 1000), (2000, 1000)]
         self.structure.append(sdxf.PolyLine(pts, layer='newer'))
 
-    def bridge(self, layer='metal_bridge', color=1):
+    def bridge(self, layer='31', color=1):
         starting_y = self.pad_width / 2 + self.x_start
         starting_x = self.y_start - self.bridge_length / 2 - self.pad_height
 
@@ -1012,13 +1015,30 @@ class Bridge_with_SiOx(Structure):
         # else:
         #    self.structure.append(sdxf.PolyLine(pts, layer=layer))
 
-    def siox_underneath(self, layer='siox block', color=1):
-        width = self.bridge_width + 2 * self.extra_siox_on_side
-        height = self.bridge_length - 2 * self.space_between_siox
+    def siox_underneath(self, layer='30', color=1):  # I changed this to be resist reflow underneath rather than SIOX original is commented below -- SR
+        # width = self.bridge_width + 2 * self.extra_siox_on_side
+        # height = self.bridge_length - 2 * self.space_between_siox
+        rrSpacing = 1.5
+        width = self.pad_width-2*rrSpacing
+        height = self.pad_height - 2 * rrSpacing
+
+
+
+
 
         # if self.direction == 0:
         startx = self.x_start - width / 2
-        starty = self.y_start + height / 2
+        starty = self.y_start + self.bridge_length/2 + rrSpacing
+        pts = [(startx, starty), (startx + width, starty),
+               (startx + width, starty + height), (startx, starty + height),
+               (startx, starty)]
+
+        pts = rotate_pts(pts, self.structure.last_direction, [self.x_start, self.y_start])
+
+        self.structure.append(sdxf.PolyLine(pts, layer=layer))
+
+        startx = self.x_start - width / 2
+        starty = self.y_start - self.bridge_length / 2 - rrSpacing
         pts = [(startx, starty), (startx + width, starty),
                (startx + width, starty - height), (startx, starty - height),
                (startx, starty)]
@@ -1027,7 +1047,29 @@ class Bridge_with_SiOx(Structure):
 
         self.structure.append(sdxf.PolyLine(pts, layer=layer))
 
-    def draw_bridge_with_siox(self, metal_layer='metal bridge', siox_layer='siox layer',
+
+    # def siox_underneath(self, layer='RR', color=1):  # I changed this to be resist reflow underneath rather than SIOX
+    #     width = self.bridge_width + 2 * self.extra_siox_on_side
+    #     height = self.bridge_length - 2 * self.space_between_siox
+    #
+    #
+    #
+    #
+    #
+    #
+    #     # # if self.direction == 0:
+    #     # startx = self.x_start - width / 2
+    #     # starty = self.y_start + height / 2
+    #     # pts = [(startx, starty), (startx + width, starty),
+    #     #        (startx + width, starty - height), (startx, starty - height),
+    #     #        (startx, starty)]
+    #     #
+    #     # pts = rotate_pts(pts, self.structure.last_direction, [self.x_start, self.y_start])
+    #
+    #     self.structure.append(sdxf.PolyLine(pts, layer=layer))
+
+
+    def draw_bridge_with_siox(self, metal_layer='31', siox_layer='30',
                               metal_color=1, siox_color=1):
         self.bridge(metal_layer, metal_color)
         self.siox_underneath(siox_layer, siox_color)
@@ -1350,7 +1392,7 @@ class CPWWiggles:
     """
 
     def __init__(self, structure, num_wiggles, total_length, offset=0, start_up=True, radius=None, pinw=None, gapw=None,
-                 segments=60, square=False, bridge=False, distance_bridge=1500):
+                 segments=40, square=False, bridge=False, distance_bridge=1500):
         """
             @param num_wiggles: a wiggle is from the center pin up/down and back
             @param total_length: The total length of the meander
@@ -1979,7 +2021,7 @@ class CPWBend:
     A CPW bend
     """
 
-    def __init__(self, structure, turn_angle, pinw=None, gapw=None, radius=None, polyarc=True, segments=60):
+    def __init__(self, structure, turn_angle, pinw=None, gapw=None, radius=None, polyarc=True, segments=40):
         """creates a CPW bend with pinw/gapw/radius
             @param turn_angle: turn_angle is in degrees, positive is CCW, negative is CW
         """
@@ -2359,7 +2401,7 @@ class CoupledWiggles:
                 isign = 2 * (ii % 2) - 1
                 if ii == 0:
                     CoupledStraight(s, vlength + offset, pinw, gapw,center_gapw)
-                CoupledBend(s, isign * asign * 180, pinw, gapw, center_gapw, radius, segments=segments)
+                CoupledBend(s, isign * asign * 180, pinw, gapw, center_gapw, radius, metal_br=segments)
                 if ii < num_wiggles - 1:
                     CoupledStraight(s, 2 * vlength + 2 * radius, pinw, gapw, center_gapw)
                 else:

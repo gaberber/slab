@@ -6909,10 +6909,13 @@ class PulseSequences:
 
         return sequencer.complete(self, plot=True)
     def get_experiment_sequences(self, experiment, **kwargs):
+        # print("1")
         vis = visdom.Visdom()
+        # print("2")
         vis.close()
-
+        # print("3")
         sequencer = Sequencer(self.channels, self.channels_awg, self.awg_info, self.channels_delay)
+        # print("4")
         self.expt_cfg = self.experiment_cfg[experiment]
         self.expt_params = self.expt_cfg
         self.on_qbs = self.expt_cfg["on_qbs"]
@@ -6922,9 +6925,9 @@ class PulseSequences:
         else:
             self.on_rds = self.expt_cfg["on_rds"]
         self.rd_setups = [self.lattice_cfg["readout"]["setup"][qb] for qb in self.on_rds]
-
+        # print("5")
         multiple_sequences = eval('self.' + experiment)(sequencer, **kwargs)
-
+        # print("6")
         return self.get_sequences(multiple_sequences)
 
     def get_sequences(self, multiple_sequences):
