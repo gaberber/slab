@@ -1,7 +1,5 @@
 __author__ = 'David Schuster'
 
-# from liveplot import LivePlotClient
-# from dataserver import dataserver_client
 import os.path
 import json
 import yaml
@@ -20,6 +18,7 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
+
 
 class Experiment:
     """Base class for all experiments"""
@@ -45,7 +44,7 @@ class Experiment:
             self.config_file = os.path.join(path, config_file)
         else:
             self.config_file = None
-        
+
         if not hasattr(self, 'ns_port'):
             self.ns_port=None
         if not hasattr(self, 'ns_address'):
@@ -147,8 +146,27 @@ class Experiment:
             f=self.datafile()
         data={}
         for k in f.keys():
-            data[k]=np.array(f[k])
-        data['attrs']=f.get_dict()
-        self.data=data
+            data[k] = np.array(f[k])
+        data["attrs"] = f.get_dict()
+        self.data = data
         return data
+
+    @classmethod
+    def from_h5file(cls, fname):
+        """
+        Alternative constructor method building returning a object 
+        that only has data and config read from the hdf5 file.
+        Mostly used for loading measured data and running the
+        analysis/display methods of its corresponding experiment.
+        Note that this bypasses the normal Experiment.__init__
+        """
+        assert os.path.exists(fname), f"Path {fname} does not exist"
+        self = cls.__new__(cls)
+        self.fname = fname
+
+        with SlabFile(fname, 'r') as f:
+            self.load_data(f)
+            self.cfg = AttrDict(yaml.safe_load(self.data['attrs']['config']))
+
+        return self
 
